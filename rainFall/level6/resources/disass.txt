@@ -1,0 +1,45 @@
+// main
+   0x0804847c <+0>:		push   ebp
+   0x0804847d <+1>:		mov    ebp,esp
+   0x0804847f <+3>:		and    esp,0xfffffff0
+   0x08048482 <+6>:		sub    esp,0x20 // set 32 bytes in the stack for the variables of this function
+   0x08048485 <+9>:		mov    DWORD PTR [esp],0x40 // save the number 64 on the stack
+   0x0804848c <+16>:	call   0x8048350 <malloc@plt> // call malloc and allocate 64
+   0x08048491 <+21>:	mov    DWORD PTR [esp+0x1c],eax // save the return on the stack in esp+0x1c
+   0x08048495 <+25>:	mov    DWORD PTR [esp],0x4 // save number 4 in the stack 
+   0x0804849c <+32>:	call   0x8048350 <malloc@plt> // call malloc and allocate with 4
+   0x080484a1 <+37>:	mov    DWORD PTR [esp+0x18],eax // save the return in the stack in esp+0x18
+   0x080484a5 <+41>:	mov    edx,0x8048468 // sore the address of m in edx
+   0x080484aa <+46>:	mov    eax,DWORD PTR [esp+0x18] 
+   0x080484ae <+50>:	mov    DWORD PTR [eax],edx // store edx in the address pointer of eax 
+   0x080484b0 <+52>:	mov    eax,DWORD PTR [ebp+0xc]
+   0x080484b3 <+55>:	add    eax,0x4
+   0x080484b6 <+58>:	mov    eax,DWORD PTR [eax] // get the fisrt argv1 in eax
+   0x080484b8 <+60>:	mov    edx,eax // move eax to edx
+   0x080484ba <+62>:	mov    eax,DWORD PTR [esp+0x1c] // esp+0x1c is where we stored the malloc return so we will save it in eax
+   0x080484be <+66>:	mov    DWORD PTR [esp+0x4],edx // variable for strcpy
+   0x080484c2 <+70>:	mov    DWORD PTR [esp],eax // variable for strcpy
+   0x080484c5 <+73>:	call   0x8048340 <strcpy@plt> // call strcpy
+   0x080484ca <+78>:	mov    eax,DWORD PTR [esp+0x18] // esp+0x18 that has the address of the malloc return 
+   0x080484ce <+82>:	mov    eax,DWORD PTR [eax] // save the address of m in eax
+   0x080484d0 <+84>:	call   eax // call m function
+   0x080484d2 <+86>:	leave
+   0x080484d3 <+87>:	ret
+
+// m
+   0x08048468 <+0>:		push   ebp
+   0x08048469 <+1>:		mov    ebp,esp
+   0x0804846b <+3>:		sub    esp,0x18 // set 24 byte in the stack fo the variables in this functions
+   0x0804846e <+6>:		mov    DWORD PTR [esp],0x80485d1 // put the string "Nope" in a variable
+   0x08048475 <+13>:	call   0x8048360 <puts@plt> // call puts and print Nope
+   0x0804847a <+18>:	leave
+   0x0804847b <+19>:	ret
+
+// n
+   0x08048454 <+0>:		push   ebp
+   0x08048455 <+1>:		mov    ebp,esp
+   0x08048457 <+3>:		sub    esp,0x18 // set 24 byte in the stack fo the variables in this functions
+   0x0804845a <+6>:		mov    DWORD PTR [esp],0x80485b0 // put the sreing "/bin/sh" in a variable
+   0x08048461 <+13>:	call   0x8048370 <system@plt> // call system
+   0x08048466 <+18>:	leave
+   0x08048467 <+19>:	ret

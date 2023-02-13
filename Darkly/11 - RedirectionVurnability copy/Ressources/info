@@ -1,0 +1,18 @@
+example:
+
+http://10.11.100.160/index.php?page=redirect&site=test
+
+<ul class="icons">
+    <li><a href="index.php?page=redirect&site=facebook" class="icon fa-facebook"></a></li>
+</ul>
+
+-------------------------------------------------------------------------------
+you can call the link to solve the problem of redirection link by:
+
+<a href="TheWebsite.com" _target="blank" class="icon fa-instagram">
+
+_target is opning the "TheWebsite" in new tab
+
+or if a redirect URI or URL 
+
+in the back-end must check the name passed in the param site befor making actions or return error if not listed in the allowed 

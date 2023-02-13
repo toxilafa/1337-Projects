@@ -1,0 +1,13 @@
+How Brute-Force Attacks Work
+Brute-force attacks take advantage of automation to try many more passwords than a human could, breaking into a system through trial and error.
+More targeted brute-force attacks use a list of common passwords to speed this up, called dictionary attacks,
+and using this technique to check for weak passwords is often the first attack a hacker will try against a system.
+
+
+<center><h2 style="margin-top:50px;">The flag is : b3a6e43ddf8b4bbb4125e5e7d23040433827759d4de1c04ea63907479a80a6b2 </h2><br/><img src="images/win.png" alt="" width=200px height=200px></center> </div>
+found password is : shadow
+
+
+solutions : 
+add rate limit to your api (this will provide a limit number of calls to the api in a giving date)
+add captcha to make sure that the user is a human not an automation script

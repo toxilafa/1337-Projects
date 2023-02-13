@@ -1,0 +1,42 @@
+
+
+in this level there are 3 main functions used: main - test - decrypt
+----------------------------
+(gdb) info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0804843c  _init
+0x08048480  printf
+0x08048480  printf@plt
+.
+.
+.
+0x08048660  decrypt
+0x08048747  test
+0x0804885a  main
+.
+
+----------------------------
+
+as a breif conclusion to the behavior of the programme we can state that 
+we have to write a password that go to the function test where it get substitued from 
+a number that equal to 322424845 then it switch the result 
+in all the results that are between (1 to 9 and 16 to 21) it get passed to function decrypt
+otherwise it decrytpt a random generated number
+in the function decrypt we recieve an encrypted string and power with the result that we got before
+than we compare the result with "Congratulations!" if it's a succes we get promoted to a shell terminal.
+
+(check source file)
+
+----------------------------
+level03@OverRide:~$ ./level03
+***********************************
+*		level03		**
+***********************************
+Password:322424827
+$ cat /home/users/level04/.pass
+kgv3tkEb9h2mLkRsPkXRfc2mHbjMxQzvb2FrgKkf
+$
+----------------------------
+

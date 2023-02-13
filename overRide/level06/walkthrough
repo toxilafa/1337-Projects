@@ -1,0 +1,89 @@
+
+
+this program has a main and an auth function
+it takes gets a login with fgets and a serial with scanf as an unsigned
+
+we used gdb to bypass the protection vs the ptrace:
+-------------------------------
+(gdb) b *0x080487ba
+Breakpoint 1 at 0x80487ba
+-------------------------------
+
+then another break where the program compares the hashed login with the serial: 
+-------------------------------
+(gdb) b *0x08048866
+Breakpoint 2 at 0x8048866
+-------------------------------
+
+then we run the program and enter more than 5 alphabets as the program needs
+or it just exit.. and enter a random value in the serial as we don't mind now
+
+-------------------------------
+(gdb) run
+Starting program: /home/users/level06/level06
+***********************************
+*		level06		  *
+***********************************
+-> Enter Login: 123456
+***********************************
+***** NEW ACCOUNT DETECTED ********
+***********************************
+-> Enter Serial: 123456 // random password a first
+-------------------------------
+
+then we get to the first breakpoint where we need to bypass the ptrace
+as ptrace returns -1 inside gdb we need to change it so the program continue
+and not leave
+-------------------------------
+Breakpoint 1, 0x080487ba in auth ()
+(gdb) info registers
+eax            0xffffffff	-1
+ecx            0x0	0
+edx            0xffffffc8	-56
+ebx            0xf7fceff4	-134418444
+esp            0xffffd510	0xffffd510
+ebp            0xffffd538	0xffffd538
+esi            0x0	0
+edi            0x0	0
+eip            0x80487ba	0x80487ba <auth+114>
+eflags         0x286	[ PF SF IF ]
+cs             0x23	35
+ss             0x2b	43
+ds             0x2b	43
+es             0x2b	43
+fs             0x0	0
+gs             0x63	99
+(gdb) set $eax=1
+(gdb) c
+Continuing.
+
+Breakpoint 2, 0x08048866 in auth ()
+-------------------------------
+
+now we got to the place where it compares with the serial after hash.. all we need is the hashed number from our string "123456" we entered in login
+-------------------------------
+(gdb) x/u $ebp-0x10
+0xffffd528:	6231517
+-------------------------------
+
+
+and there it is the hashed number is 6231517
+
+now let's enter the same "123456" but in the sreial we put our hashed number 
+-------------------------------
+level06@OverRide:~$ ./level06
+***********************************
+*		level06		  *
+***********************************
+-> Enter Login: 123456
+***********************************
+***** NEW ACCOUNT DETECTED ********
+***********************************
+-> Enter Serial: 6231517
+Authenticated!
+$  cat /home/users/level07/.pass
+GbcPDRgsFK77LNnnuh7QyFYA2942Gp8yKj9KrWD8
+$
+-------------------------------
+
+

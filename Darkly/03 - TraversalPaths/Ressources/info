@@ -1,0 +1,63 @@
+On the page http://IP/?page=<something>
+
+
+As it runs on UNIX, search the "/etc/passwd" file replace "signin" by ".." untill you reach root and then add "/etc/passwd" 
+the path to it is: http://{IP_ADDRESS}/?page=../../../../../../../etc/passwd
+------------------------------------------------------------------------------------------------------
+ex: 
+Consider a shopping application that displays images of items for sale. Images are loaded via some HTML like the following:
+<img src="/loadImage?filename=218.png">
+The loadImage URL takes a filename parameter and returns the contents of the specified file. 
+The image files themselves are stored on disk in the location /var/www/images/. 
+To return an image, the application appends the requested filename to this base directory and uses a filesystem API to read the contents of the file.
+In the above case, the application reads from the following file path:
+/var/www/images/218.png
+
+The application implements no defenses against directory traversal attacks, 
+so an attacker can request the following URL to retrieve an arbitrary file from the server's filesystem:
+
+https://website?filename=../../../etc/passwd
+
+This causes the application to read from the following file path:
+ex :
+/var/www/images/../../../etc/passwd
+
+The sequence ../ is valid within a file path, and means to step up one level in the directory structure.
+The three consecutive ../ sequences step up from /var/www/images/ to the filesystem root, and so the file that is actually read is:
+
+/etc/passwd
+
+On Unix-based operating systems, this is a standard file containing details of the users that are registered on the server.
+
+
+for more detailes resource :
+https://portswigger.net/web-security/file-path-traversal 
+https://www.acunetix.com/websitesecurity/php-security-2/
+---------------------------------------------------------------------------------------------------------
+
+Secure Code Sample
+This vulnerability may be mitigated in different ways, depending on the specific case. However,
+the most common and generic way to do it is by using the basename() and realpath() functions.
+
+The basename() function returns only the filename part of a given path/filename: basename("../../../etc/passwd") = passwd.
+The realpath() function returns the canonicalized absolute pathname but only if the file exists and if the running script has executable permissions on all directories in the hierarchy: realpath("../../../etc/passwd") = /etc/passwd.
+------------------------------
+ex : for basename()
+        <?php
+        $path = "/testweb/home.php";
+
+        echo basename($path);
+
+        ?>
+
+-> result:
+
+home.php
+C:\Inetpub\testweb\test.txt
+-----------------------
+
+
+$file = basename(realpath($_GET['file']));
+include($file);
+
+Now, if we request the same file as above, we get an empty response

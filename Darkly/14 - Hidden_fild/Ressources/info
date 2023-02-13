@@ -1,0 +1,15 @@
+
+On the page http://IP/index.php?page=recover
+
+in the submit form there is the webmaster email here
+
+<input type="hidden" name="mail" value="webmaster@borntosec.com" maxlength="15">
+
+
+Hidden fields use:
+try to submit and you will have error
+inspect the code elements, change the email value replay and validation continue to the the value email that you put in the input
+for example if you are sending a recover link for password it will send to any email that you put in the value in this way !
+
+solution:
+Data sent to the user must be validated on the server once the user click submit before send to the recover to the email

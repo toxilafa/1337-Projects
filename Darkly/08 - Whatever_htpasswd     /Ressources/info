@@ -1,0 +1,20 @@
+A robots.txt file is a file that lives on your website at example.com/robots.txt.
+The file gives you the ability to block content on a page from Google, While that is true.
+
+go to http://IP/robots.txt
+Then go to : http://IP/whatever/ 
+
+in the file  
+root:8621ffdbc5698829397d97767ac13db3
+
+md5_decrypt('8621ffdbc5698829397d97767ac13db3') ===> dragon
+
+we decode the password with the md5 hash and we get 'dragon'
+
+we used the credentions to login in http://{IP}/admin, we got the flag
+
+solutions:
+
+Disallow directories (not specific pages) 
+be sure to include an index page, a redirect, or a 404
+make sure to delete all files not useful, or hide it for public

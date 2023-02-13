@@ -1,0 +1,12 @@
+Risks :         - Attacks on your infrastructure : Overwriting an existing file
+                                         Malicious content
+                - Attacks on your users
+
+                - Disruption of service
+
+
+Preventions :   1. Only allow specific file types
+                2. Verify file types 
+                3. Scan for malware
+                4. Remove possible embedded threats (content disarm and reconstruction (CDR))
+                5. Authenticate users

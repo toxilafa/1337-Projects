@@ -1,0 +1,39 @@
+#include <cstring>
+
+class N {
+private:
+	char string[108];
+	int n;
+
+public:
+	N(int n)
+	{
+		this->n = n;
+	}
+	int operator+(N &arg)
+	{
+		return this->n + arg.n;
+	}
+	int operator-(N &arg)
+	{
+		return this->n - arg.n;
+	}
+	void setAnnotation(char *s)
+	{
+		memcpy(this->string, s, strlen(s));
+		return;
+	}
+};
+
+int main(int argc,char **argv) {
+	N first;
+	N second;
+
+	if (argc < 2) {
+		exit(1);
+	}
+	first = new N(5);
+	second = new N(6); 
+	first->setAnnotation(argv[1]);
+	return second.operator+(&first);;
+}

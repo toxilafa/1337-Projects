@@ -1,0 +1,61 @@
+
+
+void	secret_backdoor()
+{
+	char buffer[0x80];
+
+	fgets(buffer, 0x80, stdin);
+	systrm(buffer);
+}
+
+typedef struct	s_node
+{
+	char name[40];
+	char message[140];
+	int n;
+}				t_node;
+
+void	set_msg(t_node *node)
+{
+	char str[0x400];
+	
+	puts(">: Msg @Unix-Dude");
+	printf(">>: ");
+	fgets(str, 0x400, stdin);
+	strncpy(node->message, str, node->len)
+
+}
+
+void	set_username(t_node *node)
+{
+	int i;
+	char str[0x80];
+
+	puts(">: Enter your username");
+	printf(">>: ");
+	fgets(str, 0x80, stdin);
+	i = 0;
+	while (i <= 40)
+	{
+		node->name[i] = str[i];
+		i++;
+	}
+	printf(">: Welcome, %s", node->name);
+}
+
+void	handle_msg()
+{
+	t_node node;
+
+	set_username(&node);
+	set_msg(&node);
+}
+
+in main()
+{
+	puts("--------------------------------------------");
+	puts("|   ~Welcome to l33t-m$n ~    v1337        |");
+	puts("--------------------------------------------");
+	handle_msg();
+	return 0;
+}

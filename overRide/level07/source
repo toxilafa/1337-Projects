@@ -1,0 +1,99 @@
+
+
+void clear_stdin()
+{
+	char check = 0;
+	int		i;
+
+	while (true)
+	{
+		i = getchar();
+		if (i == '\n' || i == 255)
+			break ;
+	}
+}
+
+unsigned int get_unum()
+{
+	unsigned i = 0;
+	fflush();
+	scanf("%u", &i);
+	clear_stdin();
+	return(i);
+}
+
+int store_number(int *tab)
+{
+	unsigned int n, i;
+
+	printf(" Number: ");
+	n = get_unum();
+	printf(" Index: ");
+	i = get_num();
+	if (i % 3 == 0)
+	{
+		puts(" *** ERROR! ***");
+		puts("   This index is reserved for wil!");
+		puts(" *** ERROR! ***");
+		return 1;
+	}
+	(*tab)[i] = n;
+	return 0;
+}
+
+int read_number(int *tab)
+{
+	unsigned int i;
+
+	printf(" Index: ");
+	i = get_unum();
+	printf("Number at data[%u] is %u\n", i, (*tab)[i]);
+	return 0;
+}
+
+int main(int argc, char **argv, char **envp)
+{
+	int i;
+	int buffer[0x14];
+	int tab[100];
+	
+	for (i = 0; i < 100; i++)
+		tab[i] = 0;
+	for (i = 0; argv[i] != NULL, i++)
+		memeset(argv[i], 0, strlen(argv[i]);
+	for (i = 0; envp[i] != NULL, i++)
+		memeset(envp[i], 0, strlen(envp[i]));
+
+	puts("----------------------------------------------------");
+	puts("  Welcome to wil's crappy number storage service!   ");
+	puts("----------------------------------------------------");
+	puts("Commands:");
+	puts("    store - store a number into the data storage");
+	puts("    read  - read a number from the data storage");
+	puts("    quit  - exit the program");
+	puts("----------------------------------------------------");
+	puts("   wil has reserved some storage :>");
+	puts("----------------------------------------------------\n");
+
+	while (true)
+	{
+		printf("Input command: ");
+		fgets(buffer, 0x14, stdin);
+		if (strncmp(buffer, "store", 5) == 0)
+		{
+			if (store_number(&tab) == 1)
+				continue ;
+		}
+		else if (strncmp(buffer, "read", 5) == 0)
+			read_number(&tab);
+		else if (strncmp(buffer, "quit", 4) == 0)
+			break ;
+		else
+		{
+			printf("Failed to do %s command\n", buffer);
+			continue ;
+		}
+		printf(" Completed %s command successfully\n", buffer);
+	}
+	return 0;
+}

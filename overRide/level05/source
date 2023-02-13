@@ -1,0 +1,19 @@
+#include <stdio.h>
+
+dddd
+
+int		main(void)
+{
+	int	a = 0;
+	char	buffer[100];
+
+	fgets(buffer, 100, stdin);
+	while (a < strlen(buffer))
+	{
+		if (buffer[a] >= 65 && buffer[a] <= 90)
+				buffer[a] += 32;
+		a++;
+	}
+	printf(buffer);
+	exit(0);
+}

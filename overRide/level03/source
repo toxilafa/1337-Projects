@@ -1,0 +1,53 @@
+#include <stdio.h>
+#include <time.h>
+
+
+
+void decrypt(unsigned int num)
+{
+	unsigned int i = 0;
+    unsigned short encrypted[] = "Q}|u`sfg~sf{}|a3";
+    unsigned int  len;
+
+    len = strlen(encrypted);
+	while (i < len)
+	{
+		encrypted[i] = encrypted[i] ^ num;
+		i++;
+	}
+    if (strncmp(encrypted, "Congratulations!", 0x11)  != 0)
+	{
+    	puts("\nInvalid Password");
+        return;
+    } 
+    system("/bin/sh");
+}
+
+int test(unsigned int password, unsigned int num)
+{
+	unsigned int res = num - password;
+	int flag  = ((res >= 1 && res <= 9) || (res >= 16 && res <= 21)) ? 1 : 0;
+
+	switch (flag)
+	{
+		case 1:
+			return decrypt(res);
+		default:
+			return decrypt(rand());
+	}
+}
+
+int main()
+{
+	unsigned int password;
+
+	srand(time(NULL));
+	puts("***********************************");
+	puts("*				level03			  **");
+	puts("***********************************");
+	printf("Password:");
+	scanf("%u", &password);
+	test(password, 322424845);
+	return (0);
+}
+

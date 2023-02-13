@@ -1,0 +1,22 @@
+after using gdb we notice that the program has a function main
+
+the program takes an argument use atoi on it then compare it with a number
+if the number equal to 0x1a7=423.. that's the first thing i noticed first
+
+then after going to check what if i enter the argument 423:
+
+------------------------------
+level0@RainFall:~$ ./level0 423
+$
+------------------------------
+
+a prompt popped and it's a shell that we can write commands in it
+so let's try to cat the .pass of the level1:
+
+------------------------------
+$ cat /home/user/level1/.pass
+1fe8a524fa4bec01ca4ea2a869af2a02260d4a7d5fe7e7c24d8617e6dca12d3a
+$
+-----------------------------
+
+that's it we got our answer.-

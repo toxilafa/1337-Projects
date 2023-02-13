@@ -1,0 +1,16 @@
+A robots.txt file is a file that lives on your website at example.com/robots.txt.
+The file gives you the ability to block content on a page from Google, While that is true.
+
+go to http://IP/robots.txt
+then go to http://iP/.hidden
+
+We accessed that file from http://{IP}/.hidden/, and we found a list of directories and a README file, 
+and each directory has recursively other subdirectories and you got the README file in each directory. 
+so after open some README file manually we realized that there is a lot of sentences repeated in many files, 
+so we made a script with NodeJs that help us to fetch all files and get just the unique sentences
+
+With a script, open all README in order to find the good one
+
+usage: 
+>$ npm i
+>$ node script.js #or npm run serve

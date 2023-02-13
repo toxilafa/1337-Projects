@@ -1,0 +1,24 @@
+
+log_wrapper(status, file_name):
+	print to file the status
+
+main (argc, argv):
+	if (argc != 2)
+		Usage: ./level08 filename
+	if (open("./backups/.log") return error)
+        printf(ERROR: Failed to open "./backups/.log")
+
+	log_wrapper("LOG: Starting back up:", argv[1]) 	
+	// join file_name to "./backup" to create a new backup file
+	backup_path = strncat("./backups", argv[1], 89)
+
+	if (open(backup_file) return error)
+        printf(ERROR: Failed to open backup_file)
+	
+	// write the data of the argv[1] file into the new backup_file	
+	write(to backup_path)
+	
+	log_wrapper("Finished back up ", argv[1])
+
+	close(file)
+	close(backup_file)
